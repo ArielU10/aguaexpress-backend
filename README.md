@@ -1,53 +1,48 @@
 
-```markdown
-# AguaExpress - Frontend
+````markdown
+# AguaExpress - Backend
 
-Este es el frontend web (modo app) de **AguaExpress**, desarrollado con React + Vite. La aplicación permite a los usuarios (clientes y administrador) realizar y gestionar pedidos de botellones de agua.
+Este es el backend de **AguaExpress**, desarrollado con Node.js, Express y Sequelize. Gestiona usuarios, autenticación y pedidos para la aplicación móvil de una microempresa de reparto de agua.
 
 ---
 
 ## 🚀 Tecnologías
 
-- React
-- Vite
-- Axios
-- React Router
-- Context API (para autenticación y estado global)
-- Tailwind CSS (opcional para estilos)
-- dotenv
+- Node.js
+- Express
+- Sequelize
+- PostgreSQL
+- JWT (autenticación)
+- Dotenv (variables de entorno)
 
 ---
 
 ## 📁 Estructura sugerida
 
-```
-
-aguaexpress-frontend/
-├── public/
-├── src/
-│ ├── assets/
-│ ├── components/
-│ ├── pages/
-│ ├── services/
-│ ├── context/
-│ ├── hooks/
-│ ├── styles/
-│ └── App.jsx
+```text
+aguaexpress-backend/
+├── config/
+│   └── database.js
+├── controllers/
+├── middlewares/
+├── models/
+├── routes/
+├── utils/
 ├── .env
-├── vite.config.js
-├── index.html
-└── package.json
-
+├── .gitignore
+├── package.json
+└── index.js
 ````
 
 ---
 
 ## ⚙️ Instalación
 
-1. Clona el repositorio  
+1. Clona el repositorio
+
    ```bash
-   git clone https://github.com/tuusuario/aguaexpress-frontend.git
-````
+   git clone https://github.com/tuusuario/aguaexpress-backend.git
+   ```
 
 2. Instala las dependencias
 
@@ -55,21 +50,34 @@ aguaexpress-frontend/
    npm install
    ```
 
-3. Configura el archivo `.env`:
+3. Crea un archivo `.env` con las siguientes variables:
 
    ```env
-   VITE_API_URL=http://localhost:3000/api
+   DB_HOST=localhost
+   DB_USER=tu_usuario
+   DB_PASSWORD=tu_contraseña
+   DB_NAME=aguaexpress
+   DB_PORT=5432
+   SECRET_KEY=tu_clave_secreta
    ```
 
-4. Ejecuta el servidor de desarrollo
+4. (Opcional) Ejecuta las migraciones si usas Sequelize CLI
 
-   ```bash
-   npm run dev
-   ```
+---
+
+## 🚀 Scripts
+
+```bash
+npm run dev    # Ejecuta el servidor con nodemon
+npm start      # Ejecuta el servidor en producción
+```
 
 ---
 
 ## ✅ Estado del proyecto
 
-Este frontend es parte del proyecto integrador universitario **AguaExpress**, enfocado en pedidos móviles de agua embotellada para microempresas. Está diseñado para ser intuitivo, ligero y de fácil mantenimiento.
+Este backend forma parte del proyecto universitario **AguaExpress**, enfocado en digitalizar el proceso de pedidos de agua embotellada para negocios pequeños. Se diseñó con arquitectura MVC y está listo para escalar en futuras versiones.
 
+```
+
+```
