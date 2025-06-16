@@ -22,7 +22,21 @@ Este es el frontend web (modo app) de **AguaExpress**, desarrollado con React + 
 
 ```
 
-<pre> ```text aguaexpress-frontend/ ├── public/ ├── src/ │ ├── assets/ │ ├── components/ │ ├── pages/ │ ├── services/ │ ├── context/ │ ├── hooks/ │ ├── styles/ │ └── App.jsx ├── .env ├── vite.config.js ├── index.html └── package.json ``` </pre>
+aguaexpress-frontend/
+├── public/
+├── src/
+│ ├── assets/
+│ ├── components/
+│ ├── pages/
+│ ├── services/
+│ ├── context/
+│ ├── hooks/
+│ ├── styles/
+│ └── App.jsx
+├── .env
+├── vite.config.js
+├── index.html
+└── package.json
 
 ````
 
