@@ -65,14 +65,13 @@ app.use((err, _req, res, _next) => {
     await sequelize.authenticate();
     console.log('✅ Conexión a la base de datos verificada');
 
-    // 2) Solo en desarrollo sincroniza estructuras automáticamente
+    // 2) Sync controlado por entorno (solo una vez en prod con DB_SYNC=true)
     if (!isProd || process.env.DB_SYNC === 'true') {
       await sequelize.sync({ alter: true });
       console.log('🛠️ Tablas sincronizadas (sync activado)');
     } else {
       console.log('🔒 Producción: sin sync automático (usa migraciones)');
     }
-    
 
     // Mostrar tablas/modelos cargados
     console.log('📋 Modelos registrados:');
@@ -90,7 +89,7 @@ app.use((err, _req, res, _next) => {
 
     // 4) Levantar servidor
     const server = app.listen(PORT, () => {
-      console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+      console.log(`🚀 Servidor ejecutándose en http://0.0.0.0:${PORT}`);
       console.log(`🌐 API base: /api`);
       console.log('📊 Endpoints principales:');
       console.log('   • POST /api/auth/login - Iniciar sesión');
@@ -117,8 +116,23 @@ app.use((err, _req, res, _next) => {
     process.on('SIGTERM', shutdown);
     process.on('SIGINT', shutdown);
   } catch (err) {
-    console.error('❌ Error al iniciar:', err?.message || err);
-    console.error('🔍 Detalles:', err);
+    // 🔎 Diagnóstico ampliado para detectar el motivo exacto
+    console.error('❌ Error al iniciar:', err?.message);
+    console.error('🔍 Stack:', err?.stack);
+    console.error('ℹ️ NODE_ENV:', process.env.NODE_ENV);
+    console.error('ℹ️ Tiene DATABASE_URL:', !!process.env.DATABASE_URL);
+
+    try {
+      if (process.env.DATABASE_URL) {
+        const u = new URL(process.env.DATABASE_URL);
+        console.error(
+          `ℹ️ DB host: ${u.hostname}, db: ${u.pathname.slice(1)}, sslmode: ${u.searchParams.get('sslmode')}`
+        );
+      }
+    } catch (e) {
+      console.error('⚠️ No se pudo parsear DATABASE_URL para logging:', e?.message);
+    }
+
     process.exit(1);
   }
 })();
