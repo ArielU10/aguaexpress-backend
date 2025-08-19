@@ -1,47 +1,123 @@
 // -------------------- IMPORTACIONES --------------------
+require('dotenv').config(); // cargar .env lo primero
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-require('dotenv').config();
 const sequelize = require('./config/database');
+
+// ⭐ IMPORTAR RELACIONES DE BD - DEBE IR ANTES DE LAS RUTAS
+require('./models/tableRelations');
+
+// -------------------- RUTAS --------------------
 const userRoutes = require('./routes/userRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const authRoutes = require('./routes/authRoutes'); // 👈 asegúrate que coincide el nombre real
-
-// -------------------- MODELOS --------------------
-require('./models/User');
-require('./models/Order');
+const addressRoutes = require('./routes/addressRoutes');
+const authRoutes = require('./routes/authRoutes');
+const productRoutes = require('./routes/productRoutes');
+const createDefaultAdmin = require('./controllers/createDefaultAdmin');
 
 // -------------------- CONFIGURACIÓN --------------------
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
 
 // -------------------- MIDDLEWARES --------------------
-app.use(morgan('dev'));
-app.use(cors());
-app.use(express.json());
+app.use(morgan(isProd ? 'combined' : 'dev'));
 
-// -------------------- RUTAS --------------------
-app.get('/', (req, res) => {
-  res.send('✅ Backend AguaExpress funcionando');
+// CORS: en prod, restringe; en dev, permite todo
+const allowedOrigins = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: allowedOrigins.includes('*') ? true : allowedOrigins,
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: '1mb' }));
+
+// -------------------- RUTAS BÁSICAS --------------------
+app.get('/', (_req, res) => res.send('✅ Backend AguaExpress funcionando'));
+app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
+
+// -------------------- MONTAR RUTAS API --------------------
+app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+
+// -------------------- 404 Y ERRORES --------------------
+app.use((_req, res) => res.status(404).json({ message: 'Recurso no encontrado' }));
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('❌ Error:', err);
+  res.status(err.status || 500).json({ message: err.message || 'Error interno del servidor' });
 });
 
-app.use('/api', userRoutes);
-app.use('/api', orderRoutes);
-app.use('/api/auth', authRoutes); // login: POST /api/auth/login
+// -------------------- INICIO DEL SERVIDOR --------------------
+(async () => {
+  try {
+    // 1) Verificar conexión
+    await sequelize.authenticate();
+    console.log('✅ Conexión a la base de datos verificada');
 
-// -------------------- SINCRONIZACIÓN Y SERVIDOR --------------------
-sequelize.authenticate()
-  .then(() => {
-    console.log('✅ Conexión a PostgreSQL establecida correctamente');
-    return sequelize.sync({ alter: true });
-  })
-  .then(() => {
-    console.log('📦 Modelos sincronizados');
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    // 2) Solo en desarrollo sincroniza estructuras automáticamente
+    if (!isProd) {
+      await sequelize.sync({ alter: true }); // ⚠️ DEV ONLY
+      console.log('🛠️  Tablas sincronizadas (DEV alter:true)');
+    } else {
+      console.log('🔒 Producción: sin sync automático (usa migraciones)');
+    }
+
+    // Mostrar tablas/modelos cargados
+    console.log('📋 Modelos registrados:');
+    Object.keys(sequelize.models).forEach((modelName) => {
+      console.log(`   • ${sequelize.models[modelName].tableName}`);
     });
-  })
-  .catch((err) => {
-    console.error('❌ Error al iniciar el servidor o conectar la DB:', err.message);
-  });
+
+    // 3) Crear/verificar admin por defecto
+    try {
+      await createDefaultAdmin();
+      console.log('👤 Usuario administrador verificado/creado');
+    } catch (e) {
+      console.warn('⚠️ Error creando admin por defecto:', e?.message || e);
+    }
+
+    // 4) Levantar servidor
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+      console.log(`🌐 API base: /api`);
+      console.log('📊 Endpoints principales:');
+      console.log('   • POST /api/auth/login - Iniciar sesión');
+      console.log('   • GET  /api/products - Listar productos');
+      console.log('   • POST /api/orders - Crear pedido');
+      console.log('   • GET  /api/addresses - Listar direcciones');
+    });
+
+    // Graceful shutdown (opcional pero recomendado)
+    const shutdown = () => {
+      console.log('\n🛑 Recibida señal de apagado, cerrando servidor...');
+      server.close(async () => {
+        try {
+          await sequelize.close();
+          console.log('🔌 Conexión a BD cerrada. Bye!');
+          process.exit(0);
+        } catch (e) {
+          console.error('❌ Error cerrando BD:', e);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
+  } catch (err) {
+    console.error('❌ Error al iniciar:', err?.message || err);
+    console.error('🔍 Detalles:', err);
+    process.exit(1);
+  }
+})();

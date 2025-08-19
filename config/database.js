@@ -1,16 +1,34 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
+let sequelize;
+
+// Si tenemos DATABASE_URL (caso Railway)
+if (process.env.DATABASE_URL) {
+  const isProd = process.env.NODE_ENV === 'production';
+
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
-    port: process.env.DB_PORT,
-    logging: false
-  }
-);
+    protocol: 'postgres',
+    logging: false,
+    dialectOptions: isProd
+      ? { ssl: { require: true, rejectUnauthorized: false } }
+      : {},
+    pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
+  });
+} else {
+  // Caso local con variables separadas
+  sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+      host: process.env.DB_HOST,
+      dialect: 'postgres',
+      port: process.env.DB_PORT || 5432,
+      logging: false,
+    }
+  );
+}
 
 module.exports = sequelize;

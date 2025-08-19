@@ -2,31 +2,49 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const User = sequelize.define('User', {
+  id_user: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   fullName: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
   phone: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     validate: {
-      is: /^[0-9]{7,15}$/ // números del 0 al 9, de 7 a 15 dígitos
+      is: /^[0-9]{7,15}$/
     }
   },
-  address: {
+  cedula: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true,
+    unique: true,
+    validate: {
+      is: /^[0-9]{10}$/
+    }
   },
   email: {
     type: DataTypes.STRING,
     allowNull: true,
+    unique: true,
     validate: {
       isEmail: true
     }
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
+  },
+  gender: {
+    type: DataTypes.ENUM('Masculino', 'Femenino', 'Prefiero no Decirlo', 'Otro'),
+    allowNull: true
+  },
+  birthDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
   },
   role: {
     type: DataTypes.ENUM('client', 'admin'),
@@ -35,7 +53,7 @@ const User = sequelize.define('User', {
   }
 }, {
   tableName: 'users',
-  timestamps: true
+  timestamps: false
 });
 
 module.exports = User;
