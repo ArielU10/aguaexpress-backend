@@ -9,6 +9,7 @@ lerna-debug.log*
 
 # Clave Privada Firebase Android App
 /config/serviceAccountKey.json
+config/serviceAccountKey.json*
 
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
