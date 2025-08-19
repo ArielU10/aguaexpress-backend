@@ -66,12 +66,13 @@ app.use((err, _req, res, _next) => {
     console.log('✅ Conexión a la base de datos verificada');
 
     // 2) Solo en desarrollo sincroniza estructuras automáticamente
-    if (!isProd) {
-      await sequelize.sync({ alter: true }); // ⚠️ DEV ONLY
-      console.log('🛠️  Tablas sincronizadas (DEV alter:true)');
+    if (!isProd || process.env.DB_SYNC === 'true') {
+      await sequelize.sync({ alter: true });
+      console.log('🛠️ Tablas sincronizadas (sync activado)');
     } else {
       console.log('🔒 Producción: sin sync automático (usa migraciones)');
     }
+    
 
     // Mostrar tablas/modelos cargados
     console.log('📋 Modelos registrados:');
