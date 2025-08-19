@@ -1,23 +1,18 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+const isProd = process.env.NODE_ENV === 'production';
 let sequelize;
 
-// Si tenemos DATABASE_URL (caso Railway)
 if (process.env.DATABASE_URL) {
-  const isProd = process.env.NODE_ENV === 'production';
-
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     protocol: 'postgres',
     logging: false,
-    dialectOptions: isProd
-      ? { ssl: { require: true, rejectUnauthorized: false } }
-      : {},
+    dialectOptions: isProd ? { ssl: { require: true, rejectUnauthorized: false } } : {},
     pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
   });
 } else {
-  // Caso local con variables separadas
   sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
@@ -27,6 +22,7 @@ if (process.env.DATABASE_URL) {
       dialect: 'postgres',
       port: process.env.DB_PORT || 5432,
       logging: false,
+      pool: { max: 10, min: 0, acquire: 30000, idle: 10000 }, // <- añadido
     }
   );
 }

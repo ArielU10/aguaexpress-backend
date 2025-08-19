@@ -88,7 +88,7 @@ app.use((err, _req, res, _next) => {
     }
 
     // 4) Levantar servidor
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor ejecutándose en http://0.0.0.0:${PORT}`);
       console.log(`🌐 API base: /api`);
       console.log('📊 Endpoints principales:');
@@ -97,7 +97,7 @@ app.use((err, _req, res, _next) => {
       console.log('   • POST /api/orders - Crear pedido');
       console.log('   • GET  /api/addresses - Listar direcciones');
     });
-
+    
     // Graceful shutdown (opcional pero recomendado)
     const shutdown = () => {
       console.log('\n🛑 Recibida señal de apagado, cerrando servidor...');
